@@ -1,0 +1,129 @@
+:root {
+  /* Common variables */
+  --color-blue-600: #2962FF;
+}
+
+.theme-dark:root {
+  --chart-bg: #131722;
+  --tv-color-pane-background: var(--chart-bg);
+  --tv-color-platform-background: var(--chart-bg);
+  --tv-color-pane-background-secondary: var(--chart-bg);
+  --tv-color-toolbar-button-text-hover: #b2b5be;
+  --tv-color-toolbar-button-background-hover: #272942;
+  --tv-color-toolbar-button-text-active: #ffffff;
+  --tv-color-toolbar-toggle-button-background-active: #3a3e5e;
+  --tv-color-toolbar-toggle-button-background-active-hover: #3a3e5e;
+  --tv-color-toolbar-button-background-expanded: var(--chart-bg);
+
+  --tv-color-popup-background: #20243f;
+  --themed-color-bg-primary: #20243f;
+  --themed-color-properties-dialog-tab-bg: #2962ff;
+
+  --themed-color-properties-dialog-defaults-text: #b2b5be;
+  --tv-color-popup-element-background-hover: var(--chart-bg);
+  --themed-color-item-row-bg-hover: var(--chart-bg);
+  --themed-color-background-hover: var(--chart-bg);
+  --tv-color-popup-element-text: #b2b5be;
+  --tv-color-toolbar-button-text: #b2b5be;
+  --tv-color-toolbar-button-text-active-hover: #ffffff;
+  --tv-toolbar-explicit-hover-margin: 0px;
+  --themed-color-common-tooltip-bg: #20243f;
+
+  --themed-color-container-fill-primary-accent: var(--color-blue-600);
+  --priceScaleModeButtons-background-activated: var(--color-blue-600);
+  --themed-color-background-selected: var(--color-blue-600);
+
+  --themed-color-background-special-secondary: var(--color-blue-600);
+}
+
+.theme-light:root {
+  --chart-bg: #ffffff;
+  --tv-color-pane-background: var(--chart-bg);
+  --tv-color-platform-background: var(--chart-bg);
+  --tv-color-pane-background-secondary: var(--chart-bg);
+  --tv-color-toolbar-button-text-hover: #4a4a4a;
+  --tv-color-toolbar-button-background-hover: #f2f2f2;
+  --tv-color-toolbar-button-text-active: #000000;
+  --tv-color-toolbar-toggle-button-background-active: #e0e3eb;
+  --tv-color-toolbar-toggle-button-background-active-hover: #e0e3eb;
+  --tv-color-toolbar-button-background-expanded: var(--chart-bg);
+
+  --tv-color-popup-background: #ffffff;
+  --themed-color-bg-primary: #ffffff;
+  --themed-color-properties-dialog-tab-bg: #2962ff;
+
+  --themed-color-properties-dialog-defaults-text: #4a4a4a;
+  --tv-color-popup-element-background-hover: var(--chart-bg);
+  --themed-color-item-row-bg-hover: var(--chart-bg);
+  --themed-color-background-hover: var(--chart-bg);
+  --tv-color-popup-element-text: #4a4a4a;
+  --tv-color-toolbar-button-text: #4a4a4a;
+  --tv-color-toolbar-button-text-active-hover: #000000;
+  --tv-toolbar-explicit-hover-margin: 0px;
+  --themed-color-common-tooltip-bg: #ffffff;
+
+  --themed-color-container-fill-primary-accent: var(--color-blue-600);
+  --priceScaleModeButtons-background-activated: var(--color-blue-600);
+  --themed-color-background-selected: var(--color-blue-600);
+
+  --themed-color-background-special-secondary: var(--color-blue-600);
+}
+
+html.theme-dark button:not(:disabled),
+html.theme-dark [data-role="button"],
+html.theme-dark [data-role="list-item"],
+html.theme-dark [data-role="menuitem"],
+html.theme-light button:not(:disabled),
+html.theme-light [data-role="button"],
+html.theme-light [data-role="list-item"],
+html.theme-light [data-role="menuitem"] {
+  cursor: pointer;
+}
+
+html.theme-dark .chart-page,
+html.theme-light .chart-page {
+  font-family: "Relative", sans-serif;
+}
+
+html.theme-dark .chart-controls-bar,
+html.theme-light .chart-controls-bar {
+  display: none;
+  height: 0;
+}
+
+#header-toolbar-intervals button {
+  height: 26px;
+  border-radius: 4px;
+  margin: 0 1px;
+}
+
+#header-toolbar-intervals button:first-of-type {
+  margin-left: 8px;
+}
+#header-toolbar-intervals button[aria-checked="true"] {
+  background-color: #393e5e;
+  --tv-color-toolbar-button-background-hover: #393e5e;
+}
+
+[data-name="toolbar-drawing-toggle-button"][data-value="collapsed"] {
+  --tv-color-platform-background: var(--tv-color-toolbar-toggle-button-background-active);
+}
+
+[data-name="toolbar-drawing-toggle-button"][data-value="visible"] {
+  --tv-color-platform-background: var(--tv-color-toolbar-toggle-button-background-active);
+  --tv-color-pane-background: var(--tv-color-toolbar-toggle-button-background-active);
+  --themed-color-arrow-stroke: var(--chart-bg);
+}
+
+[data-name="toolbar-drawing-toggle-button"][data-value="collapsed"]:hover,
+[data-name="toolbar-drawing-toggle-button"][data-value="visible"]:hover {
+  --tv-color-toolbar-toggle-button-background-active-hover: #464a6e;
+  --tv-color-platform-background: #464a6e;
+  --tv-color-pane-background: #464a6e;
+}
+
+/* Hide tooltip tail */
+html.theme-dark .common-tooltip__ear-holder-EJBD96zX:after,
+html.theme-light .common-tooltip__ear-holder-EJBD96zX:after {
+  display: none;
+}
