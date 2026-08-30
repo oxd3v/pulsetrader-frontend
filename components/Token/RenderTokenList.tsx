@@ -1,5 +1,5 @@
 
-import { CollateralTokens, userDeafultTokens } from "@/constants/common/tokens";
+import { CollateralTokens } from "@/constants/common/tokens";
 //components
 import TokenCard from "@/components/Token/TokenCard";
 

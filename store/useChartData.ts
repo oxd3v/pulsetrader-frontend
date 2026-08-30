@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ORDER_TYPE } from '@/type/order';
+import { OrderType } from '@/type/order';
 
 type IndicatorOnChartType = {
     resolution: string,
@@ -10,7 +10,7 @@ type IndicatorOnChartType = {
 
 export const store = create((set) => ({
     ordersOnChart: [],
-    setOrdersOnChart: (ordersOnChart:ORDER_TYPE[]) => set({ ordersOnChart }),
+    setOrdersOnChart: (ordersOnChart:OrderType[]) => set({ ordersOnChart }),
     indicatorOnChart: null,
     setIndicatorOnChart: (indicatorOnChart:IndicatorOnChartType | null) => set({ indicatorOnChart })
 }))

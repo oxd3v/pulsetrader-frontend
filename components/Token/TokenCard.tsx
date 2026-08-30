@@ -34,7 +34,7 @@ const TokenCard = memo(
     const fetchTokenBalance = async () => {
       try {
         let balance = await getWalletTokenBalance({ walletAddress, tokenAddress: tokenInfo.token.address, chainId })
-        setTokenBalance(balance);
+        setTokenBalance(balance.toString());
       } catch (e) {
         console.error("Error fetching token data", e);
       }
