@@ -141,7 +141,7 @@ const OrderActions = React.memo(({ order }: OrderActionProps) => {
     (order.orderStatus === "PENDING" &&
       order.entry?.entryCriteria === "price") ||
     (order.orderStatus === "OPENED" &&
-      order.exit?.takeProfit?.takeProfitPrice !== "0");
+      order.exit?.takeProfit?.takeProfitPrice !== "0") || order.orderStatus === 'CLOSED';
 
   return (
     <>
@@ -149,8 +149,8 @@ const OrderActions = React.memo(({ order }: OrderActionProps) => {
         ref={buttonRef}
         onClick={handleToggle}
         className={`p-2 rounded-lg transition-colors ${showActions
-            ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+          ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
           }`}
       >
         <FiMoreVertical className="w-4 h-4" />

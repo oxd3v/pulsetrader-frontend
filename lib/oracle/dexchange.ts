@@ -1,3 +1,4 @@
+
 import { nativeFetchRequest } from "./fetchRequest";
 const DEX_EXCHANGE_API = [
     {
@@ -134,12 +135,12 @@ export async function fetchFuturesMarketData({ symbols = [], pageNum = 1, pageSi
     try {
         for (const api of DEX_EXCHANGE_API) {
             try {
-                const url = `${api.url}/mv/futures-market-data?pageNum=${pageNum}&pageSize=${pageSize}&exchange=${exchange}`;
+                //const url = `${api.url}/mv/futures-market-data?pageNum=${pageNum}&pageSize=${pageSize}&exchange=${exchange}`;
                 const res = await nativeFetchRequest({
-                    url: url,
+                    url: '/api/perpexchange',
                     method: "GET",
-                    headers: api.headers,
-                    urlRateLimiter: api.rateLimiter
+                    // headers: api.headers,
+                    // urlRateLimiter: api.rateLimiter
                 });
 
                 if (res && res.data && res.data.length > 0) {

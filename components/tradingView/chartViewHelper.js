@@ -21,9 +21,12 @@ import { PRECISION_DECIMALS } from "@/constants/common/utils";
 // chart "shape" annotation, not a trading-position widget.
 
 const LINE_STYLE = {
-  TP: { linecolor: "#05aa58", textcolor: "#ffffff" },
-  SL: { linecolor: "#aa0573", textcolor: "#ffffff" },
-  ENTRY: { linecolor: "#e0d5d5", textcolor: "#000000" },
+  TP: { linecolor: "#05aa58", textcolor: "#05aa58" },
+  SL: { linecolor: "#aa0573", textcolor: "#aa0573" },
+  LIQ: { linecolor: "#a7a605", textcolor: "#a7a605" },
+  ENTRY: { linecolor: "#e0d5d5", textcolor: "#e0d5d5" },
+  BUY: { color: "#00ff00" },   // green arrow
+  SELL: { color: "#ff0000" },  // red arrow
 };
 
 const BASE_OVERRIDES = {
@@ -57,6 +60,29 @@ function addHorizontalLine(chart, price, text, kind) {
   );
 }
 
+function addTickerOnChart(chart, price, unixTime, text, kind) {
+  return chart.createShape(
+    { time: unixTime, price },
+    {
+      shape: kind === "BUY" ? "arrow_up" : "arrow_down",
+      text,
+      lock: true,
+      disableSelection: true,
+      disableSave: true,
+      disableUndo: true,
+      overrides: {
+        ...BASE_OVERRIDES,
+        // For arrows, we use 'color' instead of 'linecolor'
+        color: LINE_STYLE[kind]?.color || (kind === "BUY" ? "#00ff00" : "#ff0000"),
+        // Adjust font size for ticker labels
+        fontsize: 10,
+        // For arrows, we may not need showPrice – but we can keep it
+        showPrice: true,
+      },
+    },
+  );
+}
+
 /**
  * Draws TP / SL / Entry reference lines for the given orders as plain
  * annotation shapes (no quantity box, no reverse/protect/close buttons).
@@ -68,13 +94,27 @@ export function drawOrderLinesOnChart(chart, orders) {
   if (!chart || !orders || orders.length === 0) return ids;
 
   orders.forEach((order) => {
-    // Open positions being sold — show TP / SL reference lines
-    if (
-      order.orderStatus === "OPENED" &&
-      order.orderType === "SELL"
-    ) {
+    if (order.executionDetails?.exitAt && order.executionDetails?.exitPriceUsd && parseFloat(order.executionDetails.exitPriceUsd) !== 0) {
+      const exitPrice = formatUnits(
+        BigInt(order.executionDetails.exitPriceUsd || 0),
+        PRECISION_DECIMALS,
+      );
+      const exitTime = Math.floor(parseFloat(order.executionDetails.exitAt) / 1000);
+      ids.push(addTickerOnChart(chart, Number(exitPrice), exitTime, `${order.name}/${order.sl}_EXIT`, "SELL"));
+    }
+    // Entry ticker (arrow up) – if entryAt and entryPriceUsd exist
+    if (order.executionDetails?.entryAt && order.executionDetails?.entryPriceUsd && parseFloat(order.executionDetails.entryPriceUsd) !== 0) {
+      const entryPrice = formatUnits(
+        BigInt(order.executionDetails.entryPriceUsd || 0),
+        PRECISION_DECIMALS,
+      );
+      const entryTime = Math.floor(parseFloat(order.executionDetails.entryAt) / 1000);
+      ids.push(addTickerOnChart(chart, Number(entryPrice), entryTime, `${order.name}/${order.sl}_ENTRY`, "BUY"));
+    }
+    // ── OPENED positions (SELL) – show TP, SL, LIQ, and entry ticker ──
+    if (order.orderStatus === "OPENED" && order.orderType === "SELL") {
       // Take Profit Line
-      if (order.exit.takeProfit?.takeProfitPrice && parseFloat(order.exit.takeProfit.takeProfitPrice) != 0) {
+      if (order.exit.takeProfit?.takeProfitPrice && parseFloat(order.exit.takeProfit.takeProfitPrice) !== 0) {
         const tpPrice = formatUnits(
           BigInt(order.exit.takeProfit.takeProfitPrice || 0),
           PRECISION_DECIMALS,
@@ -83,7 +123,7 @@ export function drawOrderLinesOnChart(chart, orders) {
       }
 
       // Stop Loss Line
-      if (order.exit.stopLoss?.stopLossPrice && parseFloat(order.exit.stopLoss.stopLossPrice) != 0) {
+      if (order.exit.stopLoss?.stopLossPrice && parseFloat(order.exit.stopLoss.stopLossPrice) !== 0) {
         const slPrice = formatUnits(
           BigInt(order.exit.stopLoss.stopLossPrice || 0),
           PRECISION_DECIMALS,
@@ -91,28 +131,40 @@ export function drawOrderLinesOnChart(chart, orders) {
         ids.push(addHorizontalLine(chart, Number(slPrice), `${order.name}/${order.sl}_SL`, "SL"));
       }
 
-      if (order.category == 'perpetual' && order.executionDetails.liquidationPriceUsd && parseFloat(order.executionDetails.liquidationPriceUsd) != 0) {
+      // Liquidation Line (perp only)
+      if (order.category === "perpetual" && order.executionDetails?.liquidationPriceUsd && parseFloat(order.executionDetails.liquidationPriceUsd) !== 0) {
         const liqPrice = formatUnits(
           BigInt(order.executionDetails.liquidationPriceUsd || 0),
           PRECISION_DECIMALS,
         );
         ids.push(addHorizontalLine(chart, Number(liqPrice), `${order.name}/${order.sl}_LIQ`, "LIQ"));
       }
+
+
     }
 
-    // Pending entries — show the entry reference line
+
+
+    // ── PENDING BUY orders – show entry reference line ──
     if (
       order.orderStatus === "PENDING" &&
       order.orderType === "BUY" &&
-      !order.entry.isTechnicalEntry &&
-      order.entry.priceLogic?.threshold &&
-      order.entry.priceLogic.threshold != "0"
+      !order.entry.isTechnicalEntry
     ) {
-      const entryPrice = formatUnits(
-        BigInt(order.entry.priceLogic.threshold),
-        PRECISION_DECIMALS,
-      );
-      ids.push(addHorizontalLine(chart, Number(entryPrice), `${order.name}/${order.sl}_Entry`, "ENTRY"));
+      // Try to get the target price from either priceEntry or priceLogic (legacy)
+      let entryPriceValue = null;
+      if (order.entry.priceEntry?.targetPriceUsd) {
+        entryPriceValue = order.entry.priceEntry.targetPriceUsd;
+      } else if (order.entry.priceLogic?.threshold) {
+        entryPriceValue = order.entry.priceLogic.threshold;
+      }
+      if (entryPriceValue && parseFloat(entryPriceValue) !== 0) {
+        const entryPrice = formatUnits(
+          BigInt(entryPriceValue),
+          PRECISION_DECIMALS,
+        );
+        ids.push(addHorizontalLine(chart, Number(entryPrice), `${order.name}/${order.sl}_Entry`, "ENTRY"));
+      }
     }
   });
 

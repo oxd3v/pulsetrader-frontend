@@ -542,37 +542,43 @@ const OrderCard = ({ order, marketSnapshotRef }: OrderCardProps) => {
                   {sortedLogs.map((log, idx) => (
                     <div
                       key={idx}
-                      className="text-xs border-b border-gray-100 dark:border-gray-800 last:border-0 py-1.5 flex flex-wrap items-center gap-x-3 gap-y-1"
+                      className="text-xs border-b border-gray-100 dark:border-gray-800 last:border-0 py-1.5 flex  items-center justify-between"
                     >
-                      <span className="text-gray-400 font-mono min-w-[60px]">
-                        [{formatCustomizeTime(log.at)}]
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300 flex-1">
-                        {log.message || '—'}....
-                      </span>
-                      {log.priceUsd && log.priceUsd !== '0' && (
-                        <span className="text-gray-500 font-mono flex gap-1">
-                          Px: ${displayNumber(Number(safeFormatNumber(log.priceUsd, PRECISION_DECIMALS, 6)))}
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400 font-mono min-w-[60px]">
+                          [{formatCustomizeTime(log.at)}]
                         </span>
-                      )}
-                      {log.pnlUsd && log.pnlUsd !== '0' && (
-                        <span
-                          className={`font-mono flex gap-1 ${BigInt(log.pnlUsd) > 0
-                            ? 'text-green-600 dark:text-green-400'
-                            : BigInt(log.pnlUsd) < 0
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-gray-500'
-                            }`}
-                        > P&L:
-                          {BigInt(log.pnlUsd) > 0 ? '+' : ''}
-                          {displayNumber(Number(safeFormatNumber(log.pnlUsd, PRECISION_DECIMALS, 6)))} $
+                        <span className="text-gray-700 dark:text-gray-300 flex-1">
+                          {log.message || '—'}....
                         </span>
-                      )}
-                      {log.weightScore !== undefined && log.weightScore !== null && (
-                        <span className="text-blue-500 dark:text-blue-400 font-mono bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded">
-                          WS: {log.weightScore}
-                        </span>
-                      )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1">
+                        {log.priceUsd && log.priceUsd !== '0' && (
+                          <span className="text-gray-500 font-mono flex gap-1">
+                            Px: ${displayNumber(Number(safeFormatNumber(log.priceUsd, PRECISION_DECIMALS, 6)))}
+                          </span>
+                        )}
+                        {log.pnlUsd && log.pnlUsd !== '0' && (
+                          <span
+                            className={`font-mono flex gap-1 ${BigInt(log.pnlUsd) > 0
+                              ? 'text-green-600 dark:text-green-400'
+                              : BigInt(log.pnlUsd) < 0
+                                ? 'text-red-600 dark:text-red-400'
+                                : 'text-gray-500'
+                              }`}
+                          > P&L:
+                            {BigInt(log.pnlUsd) > 0 ? '+' : ''}
+                            {displayNumber(Number(safeFormatNumber(log.pnlUsd, PRECISION_DECIMALS, 6)))} $
+                          </span>
+                        )}
+                        {log.weightScore !== undefined && log.weightScore !== null && (
+                          <span className="text-blue-500 dark:text-blue-400 font-mono bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded">
+                            WS: {log.weightScore}
+                          </span>
+                        )}
+                      </div>
+
                     </div>
                   ))}
                 </div>

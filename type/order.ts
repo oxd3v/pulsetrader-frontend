@@ -180,6 +180,8 @@ export type OrderType = {
     realizedPnlUsd?: string;
     unrealizedPnlUsd?: string;
     liquidationPriceUsd?: string;
+    entryAt?: number;
+    exitAt?: number;
     logs?: {
       at: number;
       priceUsd: string;
