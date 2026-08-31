@@ -545,10 +545,10 @@ const OrderCard = ({ order, marketSnapshotRef }: OrderCardProps) => {
                       className="text-xs border-b border-gray-100 dark:border-gray-800 last:border-0 py-1.5 flex flex-wrap items-center gap-x-3 gap-y-1"
                     >
                       <span className="text-gray-400 font-mono min-w-[60px]">
-                        {formatCustomizeTime(log.at)}
+                        [{formatCustomizeTime(log.at)}]
                       </span>
                       <span className="text-gray-700 dark:text-gray-300 flex-1">
-                        {log.message || '—'}
+                        {log.message || '—'}....
                       </span>
                       {log.priceUsd && log.priceUsd !== '0' && (
                         <span className="text-gray-500 font-mono flex gap-1">

@@ -200,7 +200,7 @@ export default function TradingStrategyMenu() {
             </motion.div>
           </motion.div>
           {/*  Trenches */}
-          <motion.div
+          {/* <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className={`bg-white dark:bg-gray-800 rounded-xl dark:shadow-2xl shadow-lg p-6 cursor-pointer transition-all duration-300 pointer-events-none opacity-50 ${selectedType === "ai"
@@ -258,7 +258,7 @@ export default function TradingStrategyMenu() {
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               <span className="text-sm tracking-wide">Initializing Agent Core...</span>
             </div>
-          </motion.div>
+          </motion.div> */}
         </div>
 
         {/* Help Section */}

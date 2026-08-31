@@ -175,7 +175,7 @@ const ChartBox = memo(function ChartBox({
             ) : (
               <TbChartArcs className="w-5 h-5" />
             )}
-            {isDisplayTokenData ? "Back to chart" : "Token Data"}
+            <p className="hidden xl:block">{isDisplayTokenData ? "Back to chart" : "Token Data"}</p>
           </button>
           <button
             onClick={toggleCollapse}
@@ -186,6 +186,7 @@ const ChartBox = memo(function ChartBox({
             ) : (
               <FiChevronUp className="w-5 h-5 text-gray-600" />
             )}
+
           </button>
         </div>
       </div>

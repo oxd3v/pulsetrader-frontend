@@ -298,7 +298,7 @@ const OrderList = ({
                   }`}
                 title="Group View"
               >
-                <CiGrid2H className="w-5 h-5" />
+                <CiGrid41 className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setIsTableOrder(true)}
@@ -308,7 +308,7 @@ const OrderList = ({
                   }`}
                 title="Table View"
               >
-                <CiGrid41 className="w-5 h-5" />
+                <CiGrid2H className="w-5 h-5" />
               </button>
             </div>
 
@@ -465,7 +465,7 @@ const OrderList = ({
                 orders={sortedOrders}
               />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2 xl:space-y-4">
                 {Object.entries(groupedOrders).map(([name, data]: [string, any]) => (
                   <StrategyGrouped
                     key={name}

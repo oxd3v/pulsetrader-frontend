@@ -1057,6 +1057,10 @@ const WalletSelector = ({
       onPerpTradeGateChange(false);
       return;
     }
+    if (assigned.length > 0 && orderMode == 'Demo') {
+      onPerpTradeGateChange(true);
+      return;
+    }
     const uniq = Array.from(new Map(assigned.map((w) => [w._id, w])).values());
     const ok = uniq.every((w) => {
       const addr = w.address.toLowerCase();
@@ -1065,7 +1069,7 @@ const WalletSelector = ({
       return data.exchangeBalance > BigInt(0);
     });
     onPerpTradeGateChange(ok);
-  }, [gridsByWallet, walletDataMap, onPerpTradeGateChange]);
+  }, [gridsByWallet, walletDataMap, onPerpTradeGateChange, orderMode]);
 
   useEffect(() => {
     const fetchGasFee = async () => {

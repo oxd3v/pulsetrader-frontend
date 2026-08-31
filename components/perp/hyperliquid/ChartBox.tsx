@@ -191,7 +191,7 @@ const ChartBox = memo(function ChartBox({
                   ) : (
                     <TbChartArcs className="w-5 h-5 text-gray-600 dark:text-gray-200" />
                   )}
-                  {isPerpAggregator ? "Back to chart" : "Agg Analytics"}
+                  <p className="hidden xl:block">{isPerpAggregator ? "Back to chart" : "Agg Analytics"}</p>
                 </button>}
                 <button
                   onClick={(event) => {
