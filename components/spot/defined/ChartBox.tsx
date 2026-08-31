@@ -99,7 +99,7 @@ const ChartBox = memo(function ChartBox({
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl font-mono shadow-sm p-1 lg:p-2 border border-gray-100 dark:border-gray-800">
-      <div className="flex justify-between items-center p-1">
+      <div className="flex justify-between items-center gap-1 p-1">
         {/* Left: Token info */}
         <div className="flex-1 cursor-pointer group" onClick={handleTokenSelect}>
           <div className="flex justify-between items-center transition-all duration-300">
@@ -124,7 +124,7 @@ const ChartBox = memo(function ChartBox({
             )}
 
             {/* Stats Cards */}
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end items-center gap-2">
               <StatCard label="Liquidity" value={tokenState?.liquidity || 0} />
               <StatCard label="Market Cap" value={tokenState?.marketCap || 0} />
               <StatCard label="24h Vol" value={tokenState?.volume24 || 0} />
@@ -179,7 +179,7 @@ const ChartBox = memo(function ChartBox({
           </button>
           <button
             onClick={toggleCollapse}
-            className="ml-4 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className=" p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             {isCollapsed ? (
               <LuChartCandlestick className="w-5 h-5 text-gray-600" />

@@ -171,10 +171,10 @@ const ChartBox = memo(function ChartBox({
                 <div className="flex w-full items-stretch justify-end gap-3 xl:w-auto xl:max-w-[760px]">
                   {metrics.map((item) => (
                     <div key={item.label}>
-                      <p className="text-[5px] xl:text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                      <p className="text-[5px] lg:text-xs xl:text-[11px] text-gray-500 dark:text-gray-400 truncate">
                         {item.label}
                       </p>
-                      <p className="flex gap-1 text-xs xl:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                      <p className="flex gap-1 text-[3px] lg:text-xs xl:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {item.value}
                       </p>
                     </div>

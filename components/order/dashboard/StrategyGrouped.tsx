@@ -192,7 +192,7 @@ export default function StrategyGroup({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="p-3 sm:p-4 grid grid-cols-1  gap-4"
+            className="p-2 sm:p-4 grid grid-cols-1  gap-4"
           >
             {orders.map((order) => (
               <OrderCard
