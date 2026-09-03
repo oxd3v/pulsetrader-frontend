@@ -1,10 +1,9 @@
 // @/hooks/useOrder.ts
 import { OrderType } from "@/type/order";
 import { WalletType } from "@/type/common";
-import { BASIS_POINT_DIVISOR_BIGINT, PRECISION_DECIMALS } from "@/constants/common/utils";
+import { PRECISION_DECIMALS } from "@/constants/common/utils";
 import { safeParseUnits } from "@/utility/handy";
 import { chains } from "@/constants/common/chain";
-import { USER_LEVEL } from "@/constants/common/user";
 import OrderService from "@/service/order-service";
 import { useStore } from "@/store/useStore";
 import { useShallow } from "zustand/shallow";
@@ -20,14 +19,13 @@ import {
   getGridNthPrice,
   validateCollateralIsStable,
 } from "@/utility/orderUtility";
-import { ORDER_TRADE_FEE } from "@/constants/common/order";
-import { getTokenPrices } from "@/lib/oracle/spotTokenPrice";
-import { convertToTokenAmount } from "@/utility/number";
+
 
 export const useOrder = () => {
-  const { setUserOrders } = useStore(
+  const { setUserOrders, systemInfo } = useStore(
     useShallow((state: any) => ({
       setUserOrders: state.setUserOrders,
+      systemInfo: state.systemInfo,
     })),
   );
 
@@ -71,7 +69,7 @@ export const useOrder = () => {
     const parsedBaseAmount = safeParseUnits(initialOrderSize, collateralToken.decimals);
     const slBps = Math.floor(slPercentage * 100);
     const tpBps = Math.floor(tpPercentage * 100);
-    const ifFeeExempt = user.status === "admin" || isTradeFeeExemptStatus(user.status, mode);
+    const ifFeeExempt = user.status === "admin" || isTradeFeeExemptStatus(systemInfo.userLevels, user.status, mode);
     const effectiveFeeToken = ifFeeExempt ? null : feeToken;   // <-- use this in baseOrder
 
     // let parsedFeeTokenPrice: bigint | undefined;
@@ -432,7 +430,7 @@ export const useOrder = () => {
       }
 
       if (user.status !== "admin") {
-        const state = USER_LEVEL[user.status.toUpperCase()];
+        const state = systemInfo.userLevels[user.status.toUpperCase()];
         if (!state) {
           notifyFromApiError("USER_NOT_ELIGIBLE");
           orderAddResult.error = "USER_NOT_ELIGIBLE";
@@ -445,7 +443,7 @@ export const useOrder = () => {
         }
       }
 
-      if (!isTradeFeeExemptStatus(user?.status, mode || "Live")) {
+      if (!isTradeFeeExemptStatus(systemInfo.userLevels, user?.status, mode || "Live")) {
         if (
           !orderParams.feeToken?.address ||
           orderParams.feeToken?.decimals == null

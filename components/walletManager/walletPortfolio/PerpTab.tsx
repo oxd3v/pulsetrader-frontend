@@ -6,7 +6,7 @@ import PerpDepositModal from "@/components/walletManager/modal/PerpDepositModal"
 import PerpWithdrawModal from "@/components/walletManager/modal/PerpWithdrawModal";
 import { PRECISION_DECIMALS } from "@/constants/common/utils";
 import Service from "@/service/user-service";
-import { WalletType } from "@/type/common";
+import { WalletType, UserType } from "@/type/common";
 import { safeFormatNumber, safeParseUnits } from "@/utility/handy";
 
 type DexName = "asterdex" | "hyperliquid";
@@ -20,6 +20,7 @@ interface PerpTabProps {
   selectedWallet: WalletType;
   perpBalances: PerpBalances;
   onRefresh: () => void;
+  user: UserType;
 }
 
 type PerpServiceResponse = {
@@ -71,6 +72,7 @@ export default function PerpTab({
   selectedWallet,
   perpBalances,
   onRefresh,
+  user,
 }: PerpTabProps) {
   const [activeDex, setActiveDex] = useState<DexName>("hyperliquid");
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
@@ -221,6 +223,7 @@ export default function PerpTab({
           }}
           wallet={selectedWallet}
           initialDex={activeDex}
+          user={user}
         />
       )}
 

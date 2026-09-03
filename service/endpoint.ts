@@ -12,13 +12,19 @@ const API_ENDPOINTS = {
   PERP_DEPOSIT: '/deposit-perp',
   GET_PERP_BALANCE: '/get-perp-dex-balance',
   WITHDRAW_PERP: '/withdraw-perp',
+  GET_SYSTEM_INFO: '/info',
   // order related endpoints
   GET_ORDER: '/get-orders',
   CREATE_ORDER: '/create-order',
   CLOSE_ORDER: '/close-order',
   DELETE_ORDER: '/delete-order',
-}
+  // admin dashboard endpoints
+  ADMIN_VERIFY: '/admin/verify',
+  ADMIN_GET_ORDERS: '/admin/orders',
+  ADMIN_GET_SYSTEM_DATA: '/admin/system-data',
+  ADMIN_UPDATE_SYSTEM: '/admin/update-system',
+  ADMIN_GET_LOGS: '/admin/logs',
+  ADMIN_SWITCH_LISTENING: '/admin/switch-order-listening',
+};
 
 export default API_ENDPOINTS;
-
-

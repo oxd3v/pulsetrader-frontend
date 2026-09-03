@@ -8,7 +8,6 @@ import { TbChartArcs } from "react-icons/tb";
 
 import type { HyperliquidMarketStats } from "@/hooks/useHyperLiquidHooks/useHyperliquidMarketStats";
 import TvChartContainer from "@/components/tradingView/perp/hyperliquid/chart";
-import { PERP_ADVANCED_SYMBOL } from "@/constants/common/order";
 import AssetSelect from "./assetSelect";
 import OrderBook from "./OrderBook";
 import PerpAggregator from "../PerpAggregator";
@@ -23,6 +22,7 @@ interface ChartBoxProps {
   connected: boolean;
   loading: boolean;
   error: string | null;
+  isAdvancedSymbol: boolean
 }
 
 const formatPercent = (value: number): string => {
@@ -66,6 +66,7 @@ const ChartBox = memo(function ChartBox({
   connected,
   loading,
   error,
+  isAdvancedSymbol
 }: ChartBoxProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isPerpAggregator, setIsPerpAggregator] = useState(false);
@@ -180,7 +181,7 @@ const ChartBox = memo(function ChartBox({
                     </div>
                   ))}
                 </div>
-                {PERP_ADVANCED_SYMBOL.includes(selectedSymbol) && <button
+                {isAdvancedSymbol && <button
                   onClick={() => setIsPerpAggregator(!isPerpAggregator)}
                   className={` flex gap-1 items-center font-monot text-sm  border border-gray-300 dark:border-gray-700 p-2 rounded-lg transition-colors ${isPerpAggregator ? "bg-blue-500 text-white" : "bg-gray-900 text-white"
                     }`}

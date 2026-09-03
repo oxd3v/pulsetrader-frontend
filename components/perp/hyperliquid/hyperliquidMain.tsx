@@ -13,7 +13,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useShallow } from "zustand/shallow";
-import { PERP_ADVANCED_SYMBOL } from "@/constants/common/order";
+
 
 import PerpTradingCaution from "@/components/common/Confirmation/PerpCaution";
 import OrderBox from "@/components/order/dashboard/OrderList";
@@ -69,6 +69,7 @@ const ChartSection = memo(
     isTradeBoxOpen,
     perpTokenInfo,
     marketSnapshotRef,
+    isAdvancedSymbol
   }: {
     selectedSymbol: string;
     stats: HyperliquidMarketStats;
@@ -83,6 +84,7 @@ const ChartSection = memo(
     isTradeBoxOpen: boolean;
     perpTokenInfo: HyperliquidPerpTokenInfo;
     marketSnapshotRef: MarketSnapshotRef;
+    isAdvancedSymbol: boolean;
   }) => (
     <div
       style={isDesktop ? { width: `${leftWidth}%` } : undefined}
@@ -96,6 +98,7 @@ const ChartSection = memo(
         connected={marketConnected}
         loading={loading}
         error={error}
+        isAdvancedSymbol={isAdvancedSymbol}
       />
       <OrderBox
         orderCategory="perpetual"
@@ -230,7 +233,7 @@ TradeButton.displayName = "TradeButton";
 // ─── Main Component ──────────────────────────────────────────────────────
 
 export default function DefinedPerpMain({ tokenSymbol }: DEFINED_PERP_MAIN_PROPS) {
-  const { user, isConnected, network, userOrders, userWallets } = useStore(
+  const { user, isConnected, network, userOrders, userWallets, systemInfo } = useStore(
     useShallow((state) => {
       const typedState = state as {
         user: unknown;
@@ -238,7 +241,9 @@ export default function DefinedPerpMain({ tokenSymbol }: DEFINED_PERP_MAIN_PROPS
         userOrders: OrderType[];
         userWallets: unknown[];
         isConnected: boolean;
+        systemInfo: any;
       };
+
 
       return {
         user: typedState.user,
@@ -246,6 +251,7 @@ export default function DefinedPerpMain({ tokenSymbol }: DEFINED_PERP_MAIN_PROPS
         userOrders: typedState.userOrders,
         userWallets: typedState.userWallets,
         isConnected: typedState.isConnected,
+        systemInfo: typedState.systemInfo,
       };
     })
   );
@@ -268,7 +274,7 @@ export default function DefinedPerpMain({ tokenSymbol }: DEFINED_PERP_MAIN_PROPS
   // ── Compute advanced symbol flag ──────────────────────────────────────
   const isAdvancedSymbol = useMemo(() => {
     const baseSymbol = normalizeCoin(selectedSymbol);
-    return PERP_ADVANCED_SYMBOL.includes(baseSymbol.toUpperCase());
+    return systemInfo.advancedAlgoPerpSymbols.includes(baseSymbol.toUpperCase());
   }, [selectedSymbol]);
 
   // ── Caution modal ──────────────────────────────────────────────────────
@@ -419,6 +425,7 @@ export default function DefinedPerpMain({ tokenSymbol }: DEFINED_PERP_MAIN_PROPS
         protocol="hyperliquid"
         marketSnapshotRef={marketSnapshotRef}
         isAdvancedSymbol={isAdvancedSymbol}
+        config={{ minimumOrderSize: systemInfo?.minimumOrderSize || 15, maxGridNumber: systemInfo?.maxGridNumber || 3, userLevels: systemInfo?.userLevels || {} }}
       />
     );
   }, [
@@ -478,6 +485,7 @@ export default function DefinedPerpMain({ tokenSymbol }: DEFINED_PERP_MAIN_PROPS
               isTradeBoxOpen={isTradeBoxOpen}
               perpTokenInfo={perpTokenInfo}
               marketSnapshotRef={marketSnapshotRef}
+              isAdvancedSymbol={isAdvancedSymbol}
             />
 
             <ResizeDivider onMouseDown={handleResizeDividerMouseDown} />

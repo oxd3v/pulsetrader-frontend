@@ -22,6 +22,16 @@ export const store = create((set) => ({
     setIsConnected: (isConnected: boolean) => set({ isConnected }),
     userConnectedWallet: '',
     setUserConnectedWallet: (userConnectedWallet: string) => set({ userConnectedWallet }),
+    systemInfo: {
+        advancedAlgoPerpSymbols: ["BTC"],
+        minimumOrderSize: 5,
+        maxGridNumber: 3,
+        perpMinimumUsdcDeposit: 10,
+        perpDepositToken: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        perpDepositChain: 42161,
+        userLevels: {}
+    },
+    setSystemInfo: (systemInfo: any) => set({ systemInfo })
 }))
 
 export const useStore = store;

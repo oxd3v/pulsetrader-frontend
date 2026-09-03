@@ -1,5 +1,4 @@
 "use client";
-import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   FiArrowUpRight,
@@ -8,20 +7,15 @@ import {
   FiShield,
   FiBarChart2,
   FiLock,
-  FiTarget,
   FiCpu,
-  FiMessageCircle,
   FiSettings,
   FiStar,
   FiTrendingUp,
-  FiLayers,
-  FiDatabase,
-  FiGlobe,
-  FiDollarSign,
+
 } from "react-icons/fi";
 import { useStore } from "@/store/useStore";
 import { useShallow } from "zustand/shallow";
-import { USER_LEVEL } from "@/constants/common/user";
+
 
 // ─── Types ──────────────────────────────────────────────────────────────
 interface TierBenefit {
@@ -68,9 +62,9 @@ const FeatureItem = ({ text, isUpcoming = false }: { text: string; isUpcoming?: 
 
 // ─── Card Component ──────────────────────────────────────────────────
 
-const PricingCard = ({ tierKey, userStatus, onSelect }: any) => {
+const PricingCard = ({ tierKey, userStatus, onSelect, userLevels }: any) => {
   const id = tierKey.toLowerCase();
-  const base = USER_LEVEL[tierKey];
+  const base = userLevels[tierKey];
   const benefits = base.benefits as TierBenefit;
   const stakeReq = base.requireMents?.GLADIATOR?.quantity || "0";
 
@@ -154,8 +148,8 @@ const PricingCard = ({ tierKey, userStatus, onSelect }: any) => {
   return (
     <div
       className={`relative flex flex-col p-6 rounded-3xl transition-all duration-300 border ${display.popular
-          ? "border-yellow-500/50 bg-yellow-500/5 dark:bg-yellow-500/[0.02] shadow-xl scale-105 z-10"
-          : "border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50"
+        ? "border-yellow-500/50 bg-yellow-500/5 dark:bg-yellow-500/[0.02] shadow-xl scale-105 z-10"
+        : "border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50"
         } hover:border-blue-500/50 hover:shadow-2xl group`}
     >
       {display.popular && (
@@ -199,8 +193,8 @@ const PricingCard = ({ tierKey, userStatus, onSelect }: any) => {
         onClick={() => onSelect(id)}
         disabled={isActive}
         className={`w-full py-4 rounded-2xl font-bold text-sm transition-all ${isActive
-            ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 cursor-default"
-            : "bg-gray-900 dark:bg-white dark:text-black text-white hover:opacity-90 active:scale-95 shadow-lg"
+          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 cursor-default"
+          : "bg-gray-900 dark:bg-white dark:text-black text-white hover:opacity-90 active:scale-95 shadow-lg"
           }`}
       >
         {isActive ? "Your Current Tier" : `Upgrade to ${base.name}`}
@@ -212,8 +206,8 @@ const PricingCard = ({ tierKey, userStatus, onSelect }: any) => {
 // ─── Main Component ──────────────────────────────────────────────────
 
 const PricingMain = () => {
-  const { user, isConnected } = useStore(
-    useShallow((s: any) => ({ user: s.user, isConnected: s.isConnected }))
+  const { user, isConnected, systemInfo } = useStore(
+    useShallow((s: any) => ({ user: s.user, isConnected: s.isConnected, systemInfo: s.systemInfo }))
   );
   const userTier = isConnected ? user?.status?.toUpperCase() : null;
 
@@ -242,12 +236,13 @@ const PricingMain = () => {
       {/* Pricing Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-32">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {Object.keys(USER_LEVEL).map((key) => (
+          {Object.keys(systemInfo.userLevels).map((key) => (
             <PricingCard
               key={key}
               tierKey={key}
               userStatus={userTier}
               onSelect={(id: string) => window.open("https://arenaburn.vercel.app/stake", "_blank")}
+              userLevels={systemInfo.userLevels}
             />
           ))}
         </div>

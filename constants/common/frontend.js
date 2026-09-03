@@ -35,6 +35,11 @@ export const NAVBAR_ITEM_LIST = [
     href: "/docs",
     type: 'public'
   },
+  {
+    name: "Admin",
+    href: "/admino",
+    type: 'onlyAdmin'
+  }
 ]
 
 import {

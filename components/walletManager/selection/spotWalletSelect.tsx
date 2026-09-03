@@ -86,6 +86,7 @@ interface WalletSelectorProps {
   selectedStrategy: any;
   estOrders: Order[];
   user: any;
+  isFeeExempt: boolean
 }
 
 
@@ -624,6 +625,7 @@ const WalletSelector = ({
   selectedStrategy,
   estOrders,
   user,
+  isFeeExempt
 }: WalletSelectorProps) => {
   const [showWalletSelector, setShowWalletSelector] = useState(false);
   const [selectedWallets, setSelectedWallets] = useState<WalletType[]>([]);
@@ -721,7 +723,8 @@ const WalletSelector = ({
           gasFee,
           orderMode,
           user,
-          treatCollateralTokenAsWalletBalance: false
+          treatCollateralTokenAsWalletBalance: false,
+          isFeeExempt
         });
 
         const [balance, tokenBalance] = await Promise.all([
@@ -813,6 +816,7 @@ const WalletSelector = ({
           gasFee,
           user,
           treatCollateralTokenAsWalletBalance: true,
+          isFeeExempt
         });
 
         if (collateralToken?.address && collateralToken.address !== ZeroAddress) {

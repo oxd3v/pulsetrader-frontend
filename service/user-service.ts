@@ -3,6 +3,13 @@ import API_ENDPOINTS from "./endpoint";
 
 const UserService = {
   //user related
+
+  getSystemInfo: (params: any) =>
+    ApiClient.get(API_ENDPOINTS.GET_SYSTEM_INFO, {
+      params: {
+        ...params,
+      },
+    }),
   checkUser: (params: any) =>
     ApiClient.get(API_ENDPOINTS.CHECK_USER, {
       params: {

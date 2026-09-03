@@ -1,7 +1,6 @@
 import { ZeroAddress } from "ethers";
 import { OrderType, OrderTokenType } from "@/type/order";
 import {
-  DEFAULT_GAS_PRICE,
   GAS_LIMIT,
   ORDER_FEE_COLLECTION_GAS_FEE,
   ORDER_TRADE_FEE,
@@ -12,8 +11,7 @@ import {
   PRECISION_DECIMALS,
 } from "@/constants/common/utils";
 import { safeParseUnits } from "@/utility/handy";
-import { USER_LEVEL } from "@/constants/common/user";
-import { convertToUsd } from "./number";
+
 
 // ============================================================================
 // ORDER MATH & GRID CALCULATIONS
@@ -180,18 +178,16 @@ export const validateCollateralIsStable = (token: OrderTokenType | null | undefi
 // ORDER FEE UTILITIES
 // ============================================================================
 
-export const isTradeFeeExemptStatus = (status?: string | null, orderMode: string = "Live") => {
+export const isTradeFeeExemptStatus = (userLevels: any, status?: string | null, orderMode: string = "Live",) => {
   if (orderMode != 'Live') return true;
   if (!status) return false;
-  return status == 'admin' || USER_LEVEL[status?.toUpperCase() as string]?.benefits?.isTradeFeeExempt == true;
+  return status == 'admin' || userLevels[status?.toUpperCase() as string]?.benefits?.isTradeFeeExempt == true;
 };
 
-export const shouldRenderFeeTokenSelector = (status?: string | null, orderMode: string = "Live") => {
-  return !status || !isTradeFeeExemptStatus(status, orderMode);
-};
 
-export const shouldCreateDemoTestnet = (status?: string | null,) => {
-  return status == 'admin' || USER_LEVEL[status?.toUpperCase() as string]?.benefits?.isDemoTestnet == true
+
+export const shouldCreateDemoTestnet = (userLevels: any, status?: string | null) => {
+  return status == 'admin' || userLevels[status?.toUpperCase() as string]?.benefits?.isDemoTestnet == true
 };
 
 export const getDefaultFeeToken = <T extends OrderTokenType>(tokens: T[] = []) => {
@@ -226,21 +222,17 @@ export const getFeeCollectionGasFee = (chainId: number) => {
 // FUND HELPERS
 // ============================================================================
 
-export const getTradeFee = (userStatus: string, orderMode: string = "Live") => {
-  if (!isTradeFeeExemptStatus(userStatus, orderMode)) {
-    return BigInt(ORDER_TRADE_FEE);
-  }
-  return BigInt(0);
-};
 
 export const calculateWalletTokenAllocation = ({
   orders,
   walletId,
   tokenAddress,
+  isFeeExempt
 }: {
   orders: OrderType[];
   walletId: string;
   tokenAddress: string;
+  isFeeExempt: boolean;
 }) => {
   if (orders.length === 0) return BigInt(0);
 
@@ -252,6 +244,7 @@ export const calculateWalletTokenAllocation = ({
       typeof order.wallet === "string" ? order.wallet : order.wallet?._id;
     if (orderWalletId !== walletId) return;
     if (!isActiveClientOrder(order)) return;
+    if (order.orderMode != 'Live') return;
 
     const orderAsset = order.orderAsset;
     if (!orderAsset) return;
@@ -283,17 +276,18 @@ export const calculateWalletTokenAllocation = ({
       if (orderToken?.address?.toLowerCase() === tokenLower) {
         totalAllocation += BigInt(perp.amount?.quantity || 0);
       }
-    }
-
-    // 2. Fee token reservations (for all categories, unless fee-exempt)
-    if (!isTradeFeeExemptStatus(order.user?.status, order?.orderMode)) {
-      const feeToken = orderAsset.feeToken;
-      if (feeToken?.address?.toLowerCase() === tokenLower) {
-        const feeCount = getOrderFeeCollectionCount(order);
-        const feeAmount = BigInt((feeToken as any)?.amount || 0);
-        totalAllocation += feeAmount * BigInt(feeCount);
+      // 2. Fee token reservations (for all categories, unless fee-exempt)
+      if (!isFeeExempt && order.orderMode != 'Live') {
+        const feeToken = orderAsset.feeToken;
+        if (feeToken?.address?.toLowerCase() === tokenLower) {
+          const feeCount = getOrderFeeCollectionCount(order);
+          const feeAmount = BigInt((feeToken as any)?.amount || 0);
+          totalAllocation += feeAmount * BigInt(feeCount);
+        }
       }
     }
+
+
   });
 
   return totalAllocation;
@@ -328,12 +322,14 @@ export const getOrderCosts = ({
   gasFee,
   user,
   treatCollateralTokenAsWalletBalance,
+  isFeeExempt
 }: {
   order: OrderType;
   collateralTokenAddress: string;
   gasFee: bigint;
   user: any;
   treatCollateralTokenAsWalletBalance: boolean;
+  isFeeExempt: boolean;
 }): OrderCosts => {
   const orderAsset = order.orderAsset;
   const feeToken = orderAsset?.feeToken;
@@ -363,12 +359,9 @@ export const getOrderCosts = ({
   }
 
   // Fee exemption check
-  const isFeeExempt =
-    typeof user?.status === "string" &&
-    isTradeFeeExemptStatus(user?.status, order?.orderMode || "Live");
+
 
   const feeCount = getOrderFeeCollectionCount(order);
-
   // For spot orders: pulse fee is deducted from collateral within the same swap TX.
   // No separate fee token reservation and no extra gas for fee collection needed.
   let feeTokenAmount = BigInt(0);
@@ -445,6 +438,7 @@ export const calculateExistingLockedFunds = ({
   orderMode,
   user,
   treatCollateralTokenAsWalletBalance,
+  isFeeExempt
 }: {
   orders: OrderType[],
   walletId: string,
@@ -453,6 +447,7 @@ export const calculateExistingLockedFunds = ({
   orderMode: string,
   user: any,
   treatCollateralTokenAsWalletBalance: boolean,
+  isFeeExempt: boolean
 }): LockedFundsResult => {
   // Maps to accumulate results
   const lockedFundBalanceByWallet = new Map<string, bigint>();
@@ -492,7 +487,9 @@ export const calculateExistingLockedFunds = ({
       gasFee,
       user: order?.user ?? user,
       treatCollateralTokenAsWalletBalance,
+      isFeeExempt
     });
+
 
     const wid = String(order?.wallet?._id ?? order?.wallet ?? "");
 
@@ -548,6 +545,7 @@ export const calculateFeeCollectionGasLocked = (
   chainId: number,
   orderMode: string,
   user: any,
+  isFeeExempt: boolean
 ): bigint => {
   const feeCollectionGas = BigInt(ORDER_FEE_COLLECTION_GAS_FEE[chainId] || 0);
   if (feeCollectionGas === BigInt(0)) return BigInt(0);
@@ -565,9 +563,6 @@ export const calculateFeeCollectionGasLocked = (
   let totalGasLocked = BigInt(0);
   for (const order of relevantOrders) {
     const orderUser = order?.user ?? user;
-    const isFeeExempt =
-      typeof orderUser?.status === "string" && isTradeFeeExemptStatus(orderUser?.status, order?.orderMode || "Live")
-    if (isFeeExempt) continue;
 
     const feeToken = order.orderAsset?.feeToken;
     const hasFeeToken = feeToken?.address && feeToken.address !== ZeroAddress;

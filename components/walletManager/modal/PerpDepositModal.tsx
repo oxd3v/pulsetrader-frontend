@@ -7,16 +7,11 @@ import {
   FiAlertCircle,
   FiClock,
   FiInfo,
-  FiDollarSign,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { formatUnits, parseUnits, ZeroAddress } from "ethers";
-import {
-  PERP_DEPOSIT_TOKEN,
-  PERP_MINIMUM_USDC_DEPOSIT,
-  PERP_DEPOSITE_CHAIN,
-} from "@/constants/common/utils";
-import { WalletType } from "@/type/common";
+
+import { WalletType, UserType } from "@/type/common";
 import { getEvmBalance } from "@/lib/blockchain/balance";
 import { getKyberSwapEncode } from "@/lib/oracle/kyber";
 import Service from "@/service/user-service";
@@ -24,9 +19,10 @@ import { useStore } from "@/store/useStore";
 import { useShallow } from "zustand/shallow";
 import { calculateWalletTokenAllocation } from "@/utility/orderUtility";
 import { notifyFromApiError } from "@/lib/utils";
-import { formatCompactNumber } from "@/utility/handy";
+import { formatCompactNumber, safeParseUnits } from "@/utility/handy";
 import { getGasFee } from "@/lib/blockchain/gas";
 import { useDebounce } from "@/hooks/useDebounce";
+import { isTradeFeeExemptStatus } from "@/utility/orderUtility";
 
 // ─── Constants ──────────────────────────────────────────────────────────
 const USDC_DEPOSIT_ARB_GAS_LIMIT = 1_000_000;
@@ -78,6 +74,7 @@ interface PerpDepositModalProps {
   onClose: () => void;
   wallet: WalletType;
   initialDex: string;
+  user: UserType;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────
@@ -86,6 +83,7 @@ export default function PerpDepositModal({
   onClose,
   wallet,
   initialDex,
+  user
 }: PerpDepositModalProps) {
   const [mounted, setMounted] = useState(false);
   const [amount, setAmount] = useState("");
@@ -107,13 +105,14 @@ export default function PerpDepositModal({
   const lastQuotedTokenRef = useRef<string>("");
 
   const needsSwap = useMemo(
-    () => selectedToken.address.toLowerCase() !== PERP_DEPOSIT_TOKEN.toLowerCase(),
+    () => selectedToken.address.toLowerCase() !== systemInfo?.perpDepositToken?.toLowerCase(),
     [selectedToken.address]
   );
 
-  const { userOrders } = useStore(
+  const { userOrders, systemInfo } = useStore(
     useShallow((state: any) => ({
       userOrders: state.userOrders || [],
+      systemInfo: state.systemInfo,
     }))
   );
 
@@ -172,6 +171,7 @@ export default function PerpDepositModal({
         orders: userOrders,
         walletId: wallet._id,
         tokenAddress: selectedToken.address,
+        isFeeExempt: isTradeFeeExemptStatus(systemInfo.userLevels, user?.status)
       });
       setLockedBalance(locked);
     } else {
@@ -198,7 +198,7 @@ export default function PerpDepositModal({
     }
 
     try {
-      const feeData: any = await getGasFee(PERP_DEPOSITE_CHAIN);
+      const feeData: any = await getGasFee(Number(systemInfo?.perpDepositChain) || 42161);
       let gasPrice = BigInt(0);
 
       if (feeData?.gasPrice) {
@@ -242,10 +242,11 @@ export default function PerpDepositModal({
     }
   }, [amount, selectedToken.decimals]);
 
+  const minimumUsdcDeposit = safeParseUnits(systemInfo?.perpMinimumUsdcDeposit, 6) || BigInt(10000000); // 10 USDC
   const isBelowMinimum =
     selectedToken.isArbUsdc &&
     parsedAmount !== null &&
-    parsedAmount < BigInt(PERP_MINIMUM_USDC_DEPOSIT);
+    parsedAmount < minimumUsdcDeposit;
 
   // When depositing native token (ETH), we need to account for gas fees in the balance check.
   const isInsufficientBalance = parsedAmount !== null &&
@@ -284,7 +285,7 @@ export default function PerpDepositModal({
       try {
         const res: any = await getKyberSwapEncode({
           tokenIn: selectedToken.address,
-          tokenOut: PERP_DEPOSIT_TOKEN,
+          tokenOut: systemInfo?.perpDepositToken,
           amountIn: amountToQuote.toString(),
           chainId: selectedToken.chainId,
           slippageBps: 50,
@@ -299,7 +300,7 @@ export default function PerpDepositModal({
 
         if (res?.success) {
           const amountOut = BigInt(res.amountOut);
-          const isBelowMin = amountOut < BigInt(PERP_MINIMUM_USDC_DEPOSIT);
+          const isBelowMin = amountOut < minimumUsdcDeposit;
           setQuoteInfo({ ...res, amountOut, isBelowMin });
           setQuotedForAmount(amountToQuote);
           lastQuotedTokenRef.current = selectedToken.address;
@@ -307,7 +308,7 @@ export default function PerpDepositModal({
           if (isBelowMin) {
             toast.error(
               `Estimated USDC output (${formatUnits(amountOut, 6)}) is below the minimum of ${formatUnits(
-                BigInt(PERP_MINIMUM_USDC_DEPOSIT),
+                minimumUsdcDeposit,
                 6
               )} USDC`
             );
@@ -384,7 +385,7 @@ export default function PerpDepositModal({
       if (!quoteInfo || quoteInfo.isBelowMin) {
         toast.error(
           `Please get a valid quote first (minimum ${formatUnits(
-            BigInt(PERP_MINIMUM_USDC_DEPOSIT),
+            minimumUsdcDeposit,
             6
           )} USDC output)`
         );
@@ -417,7 +418,7 @@ export default function PerpDepositModal({
       } else {
         const msg = res?.data?.message || res?.message || "Deposit failed";
         if (msg === "MINIMUM_DEPOSIT_REQUIRED") {
-          toast.error(`Minimum deposit is ${formatUnits(BigInt(PERP_MINIMUM_USDC_DEPOSIT), 6)} USDC`);
+          toast.error(`Minimum deposit is ${formatUnits(minimumUsdcDeposit, 6)} USDC`);
         } else {
           notifyFromApiError(msg);
         }
@@ -514,7 +515,7 @@ export default function PerpDepositModal({
                   Deposit to {selectedDex === "asterdex" ? "Asterdex" : "Hyperliquid"}
                 </h2>
                 <p className="text-[10px] uppercase tracking-widest font-bold text-gray-500 dark:text-gray-500 mt-1">
-                  Minimum {PERP_MINIMUM_USDC_DEPOSIT / 1e6} USDC
+                  Minimum {formatUnits(minimumUsdcDeposit, 6)} USDC
                 </p>
               </div>
               <button
@@ -638,7 +639,7 @@ export default function PerpDepositModal({
                 {isBelowMinimum && (
                   <p className="text-xs text-red-500 dark:text-red-400 mt-2 flex items-center gap-1">
                     <FiAlertCircle className="w-3 h-3" />
-                    Minimum deposit is {PERP_MINIMUM_USDC_DEPOSIT / 1e6} USDC
+                    Minimum deposit is {formatUnits(minimumUsdcDeposit, 6)} USDC
                   </p>
                 )}
                 {isInsufficientBalance && !isBelowMinimum && (
@@ -720,7 +721,7 @@ export default function PerpDepositModal({
                       {quoteInfo.isBelowMin && !isQuoteStale && !isQuoting && (
                         <p className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1">
                           <FiAlertCircle className="w-3 h-3" />
-                          Below minimum deposit ({formatUnits(BigInt(PERP_MINIMUM_USDC_DEPOSIT), 6)} USDC)
+                          Below minimum deposit ({formatUnits(minimumUsdcDeposit, 6)} USDC)
                         </p>
                       )}
 

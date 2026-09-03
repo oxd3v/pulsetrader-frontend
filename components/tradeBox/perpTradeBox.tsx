@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OrderType, OrderTokenType, TechnicalLogicType, TechnicalWeightsType } from "@/type/order";
 
-import { MIN_ORDER_SIZE, MAX_GRID_NUMBER } from "@/constants/common/order";
+
 import { PerpCollateral, CollateralTokens } from "@/constants/common/tokens";
 import { PerpetualStrategies, PerpOrderModes } from "@/constants/common/frontend";
 import { FiChevronDown, FiAlertTriangle, FiAlertCircle } from "react-icons/fi";
@@ -28,6 +28,7 @@ import ConfirmationModal from "../common/Confirmation/ConfirmationBox";
 import { useOrder } from "@/hooks/useOrder";
 import { useDebounce } from "@/hooks/useDebounce";
 
+
 //library
 import { getTokenPrices } from "@/lib/oracle/spotTokenPrice";
 import LeverageInput from "./TradeBoxCommon/LeverageInput";
@@ -36,7 +37,7 @@ import {
   getOrderPerpetual,
   isActiveClientOrder,
   getDefaultFeeToken,
-  shouldRenderFeeTokenSelector,
+  isTradeFeeExemptStatus,
   shouldCreateDemoTestnet,
   calculateEstLiquidationPrice,
 } from "@/utility/orderUtility";
@@ -45,7 +46,7 @@ import type { MarketSnapshotRef, StableMarketTokenInfo } from "@/type/market";
 
 const EST_PERP_MAINTENANCE_BPS = 50;
 
-// Cheap structural comparison for the small (bounded by MAX_GRID_NUMBER)
+// Cheap structural comparison for the small (bounded by config.maxGridNumber)
 // arrays configurePerpOrder() returns. Used to avoid calling setEstOrders
 // with a brand-new array reference when the computed content is actually
 // identical to what's already in state — without this, any effect that
@@ -101,6 +102,11 @@ interface perpTradeBoxProps {
   protocol: string;
   marketSnapshotRef?: MarketSnapshotRef;
   isAdvancedSymbol?: boolean;
+  config: {
+    minimumOrderSize: number;
+    maxGridNumber: number;
+    userLevels: any
+  }
 }
 
 const areEqualPerpTradeBoxProps = (
@@ -132,7 +138,9 @@ function PerpTradeBox({
   protocol,
   marketSnapshotRef,
   isAdvancedSymbol = false,
+  config = { minimumOrderSize: 15, maxGridNumber: 2, userLevels: {} }
 }: perpTradeBoxProps) {
+
   const { configurePerpOrder, submitOrder } = useOrder();
 
   // ── Stabilize hook-provided callbacks ──────────────────────────────────
@@ -214,7 +222,13 @@ function PerpTradeBox({
     getDefaultFeeToken(feeTokenOptions),
   );
   const [feeTokenPrice, setFeeTokenPrice] = useState<number>(0);
-  const showFeeTokenSelector = shouldRenderFeeTokenSelector(user?.status, orderMode || 'Live');
+
+  const isFeeExempt = useMemo(
+    () => isTradeFeeExemptStatus(config.userLevels, user?.status, orderMode || 'Live'),
+    [user, orderMode],
+  );
+
+  const showFeeTokenSelector = !isFeeExempt;
 
   const [leverage, setLeverage] = useState(1);
   const [isLong, setIsLong] = useState(false);
@@ -688,8 +702,8 @@ function PerpTradeBox({
       return withStatus(false, "Set re-entrance % in re-entrance mode");
     }
 
-    if (gridNumber < 1 || gridNumber > MAX_GRID_NUMBER) {
-      return withStatus(false, `Grid must be lower then ${MAX_GRID_NUMBER + 1} and not zero`);
+    if (gridNumber < 1 || gridNumber > config.maxGridNumber) {
+      return withStatus(false, `Grid must be lower then ${config.maxGridNumber + 1} and not zero`);
     }
 
     if (selectedStrategy.id == "sellToken") {
@@ -713,8 +727,8 @@ function PerpTradeBox({
       return withStatus(false, "Slippage should be greater then 0.4");
     }
 
-    if (estimatedUsdValue < MIN_ORDER_SIZE) {
-      return withStatus(false, `Minimum order size $${MIN_ORDER_SIZE} `);
+    if (estimatedUsdValue < config.minimumOrderSize) {
+      return withStatus(false, `Minimum order size $${config.minimumOrderSize} `);
     }
 
     if (
@@ -1128,6 +1142,7 @@ function PerpTradeBox({
         user={user}
         feeToken={showFeeTokenSelector ? feeToken : undefined}
         onPerpTradeGateChange={setPerpAccountGateOk}
+        isFeeExempt={isFeeExempt}
       />
     ),
     [
@@ -1146,7 +1161,7 @@ function PerpTradeBox({
     ],
   );
 
-  const showModeSelector = shouldCreateDemoTestnet(user?.status);
+  const showModeSelector = shouldCreateDemoTestnet(config.userLevels, user?.status);
 
 
   // ========================================================================
@@ -1373,7 +1388,7 @@ function PerpTradeBox({
               <div
                 className={`relative flex focus-within:ring-2 focus-within:ring-blue-500 focus-within:rounded-lg bg-white dark:bg-gray-800 px-1 border ${user?.status !== "admin" &&
                   initialOrderSize &&
-                  estimatedUsdValue < MIN_ORDER_SIZE
+                  estimatedUsdValue < config.minimumOrderSize
                   ? "border-red-200 dark:border-red-700"
                   : "border-gray-200 dark:border-gray-700"
                   } rounded-lg`}
@@ -1401,13 +1416,13 @@ function PerpTradeBox({
 
               {initialOrderSize && (
                 <div
-                  className={`mt-1 text-xs text-right px-1 ${estimatedUsdValue < MIN_ORDER_SIZE
+                  className={`mt-1 text-xs text-right px-1 ${estimatedUsdValue < config.minimumOrderSize
                     ? "text-red-500 font-medium"
                     : "text-gray-500 dark:text-gray-400"
                     }`}
                 >
-                  {estimatedUsdValue < MIN_ORDER_SIZE && (
-                    <span className="mr-2">Min. order $5 USD</span>
+                  {estimatedUsdValue < config.minimumOrderSize && (
+                    <span className="mr-2">Min. order ${config.minimumOrderSize} USD</span>
                   )}
                   ≈ $
                   {estimatedUsdValue.toLocaleString(undefined, {
@@ -1470,6 +1485,7 @@ function PerpTradeBox({
                 gridValue={gridNumber}
                 onChange={setGridNumber}
                 user={user}
+                maxGridNumber={config.maxGridNumber}
               />
               <NumberInput
                 inputLabel="Grid Distance"

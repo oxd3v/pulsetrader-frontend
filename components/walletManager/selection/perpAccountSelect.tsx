@@ -84,6 +84,7 @@ interface WalletSelectorProps {
   user: any;
   perpBalancesByWallet?: Record<string, string | number | bigint>;
   onPerpTradeGateChange?: (canSubmit: boolean) => void;
+  isFeeExempt: boolean;
 }
 
 
@@ -762,6 +763,7 @@ const WalletSelector = ({
   estOrders,
   user,
   perpBalancesByWallet,
+  isFeeExempt,
   onPerpTradeGateChange,
 }: WalletSelectorProps) => {
   const [showWalletSelector, setShowWalletSelector] = useState(false);
@@ -781,6 +783,7 @@ const WalletSelector = ({
       isMounted.current = false;
     };
   }, []);
+
 
   const handleOpenDeposit = useCallback((wallet: WalletType) => {
     setDepositWallet(wallet);
@@ -843,7 +846,8 @@ const WalletSelector = ({
           gasFee,
           orderMode,
           user,
-          treatCollateralTokenAsWalletBalance: false
+          treatCollateralTokenAsWalletBalance: false,
+          isFeeExempt
         });
 
         // Track which fee tokens we need balances for
@@ -986,6 +990,7 @@ const WalletSelector = ({
           gasFee,
           user,
           treatCollateralTokenAsWalletBalance: false,
+          isFeeExempt
         });
         estimates[address].estAmount += costs.dexOrderAmount;
 
@@ -1382,6 +1387,7 @@ const WalletSelector = ({
           onClose={handleCloseDeposit}
           wallet={depositWallet}
           initialDex={protocol}
+          user={user}
         />
       )}
     </div>

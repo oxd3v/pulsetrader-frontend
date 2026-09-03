@@ -230,6 +230,37 @@ export const NOTIFICATION_CONFIG: Record<
   },
 
 
+  // ----------------- admin ----------------------
+  SYSTEM_DOCUMENT_NOT_FOUND: {
+    title: "System Config Not Found",
+    message: "Something went wrong in database system config not found.",
+  },
+  ADMIN_PASSWORD_NOT_CONFIGURED: {
+    title: "Admin password not configured",
+    message: "Something went wrong in database admin password not configured.",
+  },
+  CRITICAL_PROBLEM: {
+    title: "Critical Problem",
+    message: "Something went wrong. Critical System Error.",
+  },
+  SYSTEM_UPDATE_FAILED: {
+    title: "System Update Failed",
+    message: "Failed to update system settings. Please try again.",
+  },
+  ADMIN_PASSWORD_UPDATE_FAILED: {
+    title: "Admin Password Update Failed",
+    message: "Failed to update admin password. Please try again.",
+  },
+  INVALID_LOG_FILENAME: {
+    title: "Invalid Log File Name",
+    message: "Please provide a valid log file name",
+  },
+  LOG_FILE_NOT_FOUND: {
+    title: "Log File Not Found",
+    message: "Log file not found.",
+  },
+
+
   //-----------------------------------------------------------------------
   //------------------------ Authentication & Session --------------------
   //-----------------------------------------------------------------------

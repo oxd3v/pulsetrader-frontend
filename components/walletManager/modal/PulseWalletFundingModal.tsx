@@ -13,7 +13,7 @@ import {
   formateAmountWithFixedDecimals,
 } from "@/utility/handy";
 import { getWalletBalance, getWalletTokenBalance } from "@/lib/blockchain/balance";
-import { calculateWalletTokenAllocation } from "@/utility/orderUtility";
+import { calculateWalletTokenAllocation, isTradeFeeExemptStatus } from "@/utility/orderUtility";
 import { useStore } from "@/store/useStore";
 import { useUserAuth } from "@/hooks/useAuth";
 
@@ -31,7 +31,7 @@ interface FundingModalProps {
     symbol: string;
     imageUrl: string;
   };
-  user: { account: string };
+  user: { account: string, status: string };
 }
 
 export default function FundingModal({
@@ -45,9 +45,10 @@ export default function FundingModal({
   user,
 }: FundingModalProps) {
   const { withdrawBalance } = useUserAuth();
-  const { userOrders } = useStore(
+  const { userOrders, systemInfo } = useStore(
     useShallow((state: any) => ({
       userOrders: state.userOrders || [],
+      systemInfo: state.systemInfo || {}
     }))
   );
 
@@ -117,6 +118,7 @@ export default function FundingModal({
         orders: userOrders,
         walletId,
         tokenAddress: tokenInfo.address,
+        isFeeExempt: isTradeFeeExemptStatus(systemInfo.userLevels, user.status,)
       });
       setLockedBalance(locked.toString());
     } else {
@@ -266,8 +268,8 @@ export default function FundingModal({
                     key={m}
                     onClick={() => setMode(m)}
                     className={`flex-1 py-2.5 md:py-3 text-[10px] md:text-xs font-black rounded-xl transition-all uppercase tracking-widest ${mode === m
-                        ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white ring-1 ring-gray-300 dark:ring-white/20 shadow-sm"
-                        : "text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                      ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white ring-1 ring-gray-300 dark:ring-white/20 shadow-sm"
+                      : "text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                       }`}
                   >
                     {m}
@@ -350,8 +352,8 @@ export default function FundingModal({
                   <div className="space-y-3">
                     <div
                       className={`bg-gray-50 dark:bg-red-950/20 rounded-2xl border p-3 md:p-4 transition-all ${amount && availableBigInt < amountBigInt
-                          ? "border-rose-500 dark:border-red-500"
-                          : "border-gray-200 dark:border-red-500/20 focus-within:border-rose-400 dark:focus-within:border-red-400/50"
+                        ? "border-rose-500 dark:border-red-500"
+                        : "border-gray-200 dark:border-red-500/20 focus-within:border-rose-400 dark:focus-within:border-red-400/50"
                         }`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -382,8 +384,8 @@ export default function FundingModal({
 
                     <div
                       className={`bg-gray-50 dark:bg-red-950/20 rounded-2xl border p-3 md:p-4 transition-all ${shouldShowError
-                          ? "border-rose-500 dark:border-red-500/50"
-                          : "border-gray-200 dark:border-red-500/20 focus-within:border-rose-400 dark:focus-within:border-red-400/50"
+                        ? "border-rose-500 dark:border-red-500/50"
+                        : "border-gray-200 dark:border-red-500/20 focus-within:border-rose-400 dark:focus-within:border-red-400/50"
                         }`}
                     >
                       <label className="text-[10px] font-bold text-gray-500 dark:text-red-400/70 uppercase tracking-widest block mb-1">
@@ -415,8 +417,8 @@ export default function FundingModal({
                     disabled={isLoading}
                     onClick={handleWithdraw}
                     className={`w-full py-3.5 md:py-4 rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest text-white transition-all bg-gradient-to-r from-rose-600 to-red-500 dark:from-red-600 dark:to-rose-500 ${isLoading
-                        ? "opacity-70 cursor-not-allowed"
-                        : "hover:shadow-lg hover:shadow-rose-500/25 dark:hover:shadow-red-500/25"
+                      ? "opacity-70 cursor-not-allowed"
+                      : "hover:shadow-lg hover:shadow-rose-500/25 dark:hover:shadow-red-500/25"
                       }`}
                   >
                     <div className="flex items-center justify-center gap-2">

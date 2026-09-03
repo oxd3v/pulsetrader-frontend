@@ -1,8 +1,3 @@
-export const MIN_ORDER_SIZE = 0.2;
-export const MAX_GRID_NUMBER = 5;
-export const MIN_PERP_DEPOSIT = 10;
-
-
 import { chains } from "./chain";
 
 export const GAS_LIMIT = {
@@ -42,8 +37,6 @@ export const ORDER_TRADE_FEE = BigInt(10);
 export const DEFAULT_SOLANA_PRIORITY_FEE = BigInt(50_000);
 export const SOLANA_BASE_FEE = BigInt(5000);
 export const DEFAULT_SOLANA_COMPUTE_UNITS = BigInt(250_000);
-export const SINGLE_PERPETUAL_STRATEGY = ['limit', 'dca', 'grid', 'algo'];
-export const SINGLE_SPOT_STRATEGY = ['limit', 'algo'];
 export const ORDER_FEE_COLLECTION_GAS_FEE = {
   [chains.Avalanche]: BigInt(14000000000000),
   [chains.Ethereum]: BigInt(50000000000000),
@@ -51,6 +44,10 @@ export const ORDER_FEE_COLLECTION_GAS_FEE = {
   [chains.Arbitrum]: BigInt(4500000000000),
 };
 
+export const SINGLE_PERPETUAL_STRATEGY = ['limit', 'dca', 'grid', 'algo'];
+export const SINGLE_SPOT_STRATEGY = ['limit', 'algo'];
 
 
-export const PERP_ADVANCED_SYMBOL = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "DOGE"];
+export const PERP_MINIMUM_USDC_DEPOSIT = 6000000; // 10 USDC
+export const PERP_DEPOSIT_TOKEN = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+export const PERP_DEPOSITE_CHAIN = 42161;

@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OrderType, OrderTokenType, TechnicalLogicType, TechnicalWeightsType } from "@/type/order";
 
-import { MIN_ORDER_SIZE, MAX_GRID_NUMBER } from "@/constants/common/order";
+
 import { CollateralTokens } from "@/constants/common/tokens";
 import { SpotStrategies, SpotOrderModes } from "@/constants/common/frontend";
 import { FiChevronDown, FiAlertTriangle } from "react-icons/fi";
@@ -34,6 +34,7 @@ import { getTokenPrices } from "@/lib/oracle/spotTokenPrice";
 import type { MarketSnapshotRef, StableMarketTokenInfo } from "@/type/market";
 import {
   shouldCreateDemoTestnet,
+  isTradeFeeExemptStatus
 } from "@/utility/orderUtility";
 
 interface GridsByWallet {
@@ -61,6 +62,11 @@ interface spotTradeBoxProps {
   userWallets?: any[];
   userPrevOrders?: any[];
   marketSnapshotRef?: MarketSnapshotRef;
+  config: {
+    minimumOrderSize: number;
+    maxGridNumber: number;
+    userLevels: any;
+  }
 }
 
 const areEqualSpotTradeBoxProps = (
@@ -88,6 +94,7 @@ function SpotTradeBox({
   userWallets = [],
   userPrevOrders = [],
   marketSnapshotRef,
+  config = { minimumOrderSize: 15, maxGridNumber: 2, userLevels: {} }
 }: spotTradeBoxProps) {
   const { configureSpotOrder, submitOrder } = useOrder();
 
@@ -143,7 +150,10 @@ function SpotTradeBox({
   const [liveTokenPriceUsd, setLiveTokenPriceUsd] = useState(
     () => marketSnapshotRef?.current?.priceUsd || tokenInfo?.priceUsd || "",
   );
-
+  const isFeeExempt = useMemo(
+    () => isTradeFeeExemptStatus(config.userLevels, user?.status, orderMode || 'Live'),
+    [user, orderMode],
+  );
   // Validation State
   const [isOrderNameValidate, setIsOrderNameValidate] = useState<boolean>(false);
 
@@ -450,8 +460,8 @@ function SpotTradeBox({
       return withStatus(false, "Set re-entrance % in re-entrance mode");
     }
 
-    if (gridNumber < 1 || gridNumber > MAX_GRID_NUMBER) {
-      return withStatus(false, `Grid must be lower then ${MAX_GRID_NUMBER + 1} and not zero`);
+    if (gridNumber < 1 || gridNumber > config.maxGridNumber) {
+      return withStatus(false, `Grid must be lower then ${config.maxGridNumber + 1} and not zero`);
     }
 
     if (tpPercentage <= 0) return withStatus(false, "Set TP percentage");
@@ -461,8 +471,8 @@ function SpotTradeBox({
       return withStatus(false, "Slippage should be greater then 0.4");
     }
 
-    if (estimatedUsdValue < MIN_ORDER_SIZE) {
-      return withStatus(false, `Minimum order size $${MIN_ORDER_SIZE} `);
+    if (estimatedUsdValue < config.minimumOrderSize) {
+      return withStatus(false, `Minimum order size $${config.minimumOrderSize} `);
     }
 
     if (["limit", "scalp", "algo"].includes(selectedStrategy.id) && gridNumber !== 1) {
@@ -659,16 +669,16 @@ function SpotTradeBox({
 
         {/* Mode-specific warning */}
         <div className={`flex items-start gap-3 p-4 rounded-xl border ${orderMode === 'Live'
-            ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20'
-            : orderMode === 'Testnet'
-              ? 'bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20'
-              : 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20'
+          ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20'
+          : orderMode === 'Testnet'
+            ? 'bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20'
+            : 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20'
           }`}>
           <FiAlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${orderMode === 'Live'
-              ? 'text-blue-600 dark:text-blue-400'
-              : orderMode === 'Testnet'
-                ? 'text-yellow-600 dark:text-yellow-400'
-                : 'text-red-600 dark:text-red-400'
+            ? 'text-blue-600 dark:text-blue-400'
+            : orderMode === 'Testnet'
+              ? 'text-yellow-600 dark:text-yellow-400'
+              : 'text-red-600 dark:text-red-400'
             }`} />
           <p className="text-xs font-mono leading-relaxed text-left">
             {orderMode === 'Live'
@@ -784,6 +794,7 @@ function SpotTradeBox({
         selectedStrategy={selectedStrategy}
         estOrders={estOrders}
         user={user}
+        isFeeExempt={isFeeExempt}
       />
     ),
     [
@@ -799,7 +810,7 @@ function SpotTradeBox({
     ],
   );
 
-  const showModeSelector = shouldCreateDemoTestnet(user?.status);
+  const showModeSelector = shouldCreateDemoTestnet(config.userLevels, user?.status);
 
   // ─── Render ────────────────────────────────────────────────────────────
 
@@ -945,7 +956,7 @@ function SpotTradeBox({
               <div
                 className={`relative flex focus-within:ring-2 focus-within:ring-blue-500 focus-within:rounded-lg bg-white dark:bg-gray-800 px-1 border ${user?.status !== "admin" &&
                   initialOrderSize &&
-                  estimatedUsdValue < MIN_ORDER_SIZE
+                  estimatedUsdValue < config.minimumOrderSize
                   ? "border-red-200 dark:border-red-700"
                   : "border-gray-200 dark:border-gray-700"
                   } rounded-lg`}
@@ -1011,12 +1022,12 @@ function SpotTradeBox({
 
               {initialOrderSize && (
                 <div
-                  className={`mt-1 text-xs text-right px-1 ${estimatedUsdValue < MIN_ORDER_SIZE
+                  className={`mt-1 text-xs text-right px-1 ${estimatedUsdValue < config.minimumOrderSize
                     ? "text-red-500 font-medium"
                     : "text-gray-500 dark:text-gray-400"
                     }`}
                 >
-                  {estimatedUsdValue < MIN_ORDER_SIZE && (
+                  {estimatedUsdValue < config.minimumOrderSize && (
                     <span className="mr-2">Min. order $5 USD</span>
                   )}
                   ≈ $
@@ -1055,6 +1066,7 @@ function SpotTradeBox({
                 gridValue={gridNumber}
                 onChange={setGridNumber}
                 user={user}
+                maxGridNumber={config.maxGridNumber}
               />
               <NumberInput
                 inputLabel="Grid Distance"

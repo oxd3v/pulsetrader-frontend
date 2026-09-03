@@ -33,6 +33,7 @@ export const useUserAuth = () => {
     setUserHistories,
     setIsConnected,
     setSignature,
+    setSystemInfo
   } = useStore(
     useShallow((state: any) => ({
       isConnected: state.isConnected,
@@ -42,6 +43,7 @@ export const useUserAuth = () => {
       setUserHistories: state.setUserHistories,
       setIsConnected: state.setIsConnected,
       setSignature: state.setSignature,
+      setSystemInfo: state.setSystemInfo,
     })),
   );
 
@@ -90,45 +92,45 @@ export const useUserAuth = () => {
     const checkResult = { connected: false, error: null as string | null };
 
     try {
-      const signer = await getSigner();
-      if (!signer) {
-        notifyWithResponseError("error", "Please connect your wallet");
-        checkResult.error = "WALLET_NOT_CONNECTED";
-        return checkResult;
-      }
+      // const signer = await getSigner();
+      // if (!signer) {
+      //   notifyWithResponseError("error", "Please connect your wallet");
+      //   checkResult.error = "WALLET_NOT_CONNECTED";
+      //   return checkResult;
+      // }
 
-      const address = await signer.getAddress();
-      const signature = localStorage.getItem(TOKEN_STORAGE_KEY);
-      if (!signature) {
-        notifyWithResponseError("error", "Session expired. Please reconnect.");
-        checkResult.error = "SESSION_EXPIRED";
-        return checkResult;
-      }
-
-
+      // const address = await signer.getAddress();
+      // const signature = localStorage.getItem(TOKEN_STORAGE_KEY);
+      // if (!signature) {
+      //   notifyWithResponseError("error", "Session expired. Please reconnect.");
+      //   checkResult.error = "SESSION_EXPIRED";
+      //   return checkResult;
+      // }
 
 
-      try {
-        const recoveredAddress = verifyMessage(SIGN_MESSAGE, signature);
-        if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
-          throw new Error("Invalid signature");
-        }
-        setSignature(signature);
-      } catch {
-        notifyWithResponseError("error", "Invalid session. Please reconnect.");
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-        checkResult.error = "INVALID_SESSION";
-        return checkResult;
-      }
 
-      const encryptedToken = await encryptAuthToken(signature);
-      if (!encryptedToken) {
-        notifyFromApiError("SIGNATURE_AUTHENTICATION_FAILED");
-        checkResult.error = "SIGNATURE_AUTHENTICATION_FAILED";
-        return checkResult;
-      }
 
-      const apiResponse = await Service.checkUser({ address, encryptedToken });
+      // try {
+      //   const recoveredAddress = verifyMessage(SIGN_MESSAGE, signature);
+      //   if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+      //     throw new Error("Invalid signature");
+      //   }
+      //   setSignature(signature);
+      // } catch {
+      //   notifyWithResponseError("error", "Invalid session. Please reconnect.");
+      //   localStorage.removeItem(TOKEN_STORAGE_KEY);
+      //   checkResult.error = "INVALID_SESSION";
+      //   return checkResult;
+      // }
+
+      // const encryptedToken = await encryptAuthToken(signature);
+      // if (!encryptedToken) {
+      //   notifyFromApiError("SIGNATURE_AUTHENTICATION_FAILED");
+      //   checkResult.error = "SIGNATURE_AUTHENTICATION_FAILED";
+      //   return checkResult;
+      // }
+
+      const apiResponse = await Service.checkUser({});
 
       if (!apiResponse?.connect || !apiResponse?.data?.userData?.account) {
         const key = apiResponse?.message || "USER_NOT_FOUND";
@@ -155,6 +157,8 @@ export const useUserAuth = () => {
       return checkResult;
     }
   }, [getSigner, setSignature, updateGlobalUserState]);
+
+
 
   // --- 2. Connect (Login with Wallet) ---
   const connect = useCallback(async () => {
@@ -630,6 +634,21 @@ export const useUserAuth = () => {
     }
   }, [setIsConnected, setSignature, setUser, setUserHistories, setUserWallets]);
 
+  const updateSystemInfo = useCallback(async () => {
+    try {
+      const apiResponse = await Service.getSystemInfo({});
+      if (!apiResponse.success || !apiResponse?.data) {
+        const key = apiResponse?.message || "SERVER_ERROR";
+        notifyFromApiError(key);
+        return;
+      }
+      setSystemInfo(apiResponse.data);
+    } catch (error: any) {
+      const key = handleServerErrorToast({ err: error });
+      notifyFromApiError(key);
+    }
+  }, [setSystemInfo])
+
   return {
     checkUser,
     connectUserByWallet: connect,
@@ -643,5 +662,6 @@ export const useUserAuth = () => {
     connectByToken,
     getPrivateKey,
     getUserHistory,
+    updateSystemInfo
   };
 };

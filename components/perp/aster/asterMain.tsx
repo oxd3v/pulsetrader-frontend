@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useShallow } from "zustand/shallow";
-import { PERP_ADVANCED_SYMBOL } from "@/constants/common/order";
+
 
 import PerpTradingCaution from "@/components/common/Confirmation/PerpCaution";
 import ChartBox from "./ChartBox";
@@ -64,6 +64,7 @@ const ChartSection = memo(
     isTradeBoxOpen,
     perpTokenInfo,
     marketSnapshotRef,
+    isAdvancedSymbol
   }: {
     selectedSymbol: string;
     stats: AsterMarketStats;
@@ -78,6 +79,7 @@ const ChartSection = memo(
     isTradeBoxOpen: boolean;
     perpTokenInfo: AsterPerpTokenInfo;
     marketSnapshotRef: MarketSnapshotRef;
+    isAdvancedSymbol: boolean;
   }) => (
     <div
       style={isDesktop ? { width: `${leftWidth}%` } : undefined}
@@ -91,6 +93,7 @@ const ChartSection = memo(
         connected={asterConnected}
         loading={loading}
         error={error}
+        isAdvancedSymbol={isAdvancedSymbol}
       />
       <OrderBox
         orderCategory="perpetual"
@@ -223,7 +226,7 @@ TradeButton.displayName = "TradeButton";
 // ─── Main Component ──────────────────────────────────────────────────────
 
 export default function AsterPerpMain({ tokenSymbol }: ASTER_PERP_MAIN_PROPS) {
-  const { user, isConnected, network, userOrders, userWallets } = useStore(
+  const { user, isConnected, network, userOrders, userWallets, systemInfo } = useStore(
     useShallow((state) => {
       const typedState = state as {
         user: unknown;
@@ -231,6 +234,7 @@ export default function AsterPerpMain({ tokenSymbol }: ASTER_PERP_MAIN_PROPS) {
         userOrders: OrderType[];
         userWallets: unknown[];
         isConnected: boolean;
+        systemInfo: any;
       };
 
       return {
@@ -239,6 +243,7 @@ export default function AsterPerpMain({ tokenSymbol }: ASTER_PERP_MAIN_PROPS) {
         userOrders: typedState.userOrders,
         userWallets: typedState.userWallets,
         isConnected: typedState.isConnected,
+        systemInfo: typedState.systemInfo,
       };
     })
   );
@@ -261,7 +266,7 @@ export default function AsterPerpMain({ tokenSymbol }: ASTER_PERP_MAIN_PROPS) {
   // ── Compute advanced symbol flag ──────────────────────────────────────
   const isAdvancedSymbol = useMemo(() => {
     const baseSymbol = normalizeCoin(selectedSymbol);
-    return PERP_ADVANCED_SYMBOL.includes(baseSymbol);
+    return systemInfo.advancedAlgoPerpSymbols.includes(baseSymbol);
   }, [selectedSymbol]);
 
   // ── Caution modal ──────────────────────────────────────────────────────
@@ -406,6 +411,7 @@ export default function AsterPerpMain({ tokenSymbol }: ASTER_PERP_MAIN_PROPS) {
         protocol="asterdex"
         marketSnapshotRef={marketSnapshotRef}
         isAdvancedSymbol={isAdvancedSymbol}
+        config={{ minimumOrderSize: systemInfo?.minimumOrderSize || 15, maxGridNumber: systemInfo?.maxGridNumber || 3, userLevels: systemInfo.userLevels }}
       />
     );
   }, [
@@ -465,6 +471,7 @@ export default function AsterPerpMain({ tokenSymbol }: ASTER_PERP_MAIN_PROPS) {
               isTradeBoxOpen={isTradeBoxOpen}
               perpTokenInfo={perpTokenInfo}
               marketSnapshotRef={marketSnapshotRef}
+              isAdvancedSymbol={isAdvancedSymbol}
             />
 
             <ResizeDivider onMouseDown={handleResizeDividerMouseDown} />

@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import InfoTooltip from "./BoxTooltip";
-import { MAX_GRID_NUMBER } from "@/constants/common/order";
+
 
 interface GridInputProps {
   gridValue: number;
   onChange: (value: number) => void;
   user: any;
+  maxGridNumber: number
 }
 
-const GridInput = ({ gridValue, onChange, user }: GridInputProps) => {
+const GridInput = ({ gridValue, onChange, user, maxGridNumber }: GridInputProps) => {
   const [inputValue, setInputValue] = useState(String(gridValue));
-  const maxGrid = user?.status === "admin" ? 20 : MAX_GRID_NUMBER;
+  const maxGrid = user?.status === "admin" ? 20 : maxGridNumber;
 
   // Sync local state when prop changes (e.g., reset from parent)
   useEffect(() => {
@@ -40,11 +41,10 @@ const GridInput = ({ gridValue, onChange, user }: GridInputProps) => {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onBlur={handleBlur}
-        className={`w-full px-3 py-2 bg-white dark:bg-gray-800 border ${
-          user?.status !== "admin" && Number(gridValue) > maxGrid
+        className={`w-full px-3 py-2 bg-white dark:bg-gray-800 border ${user?.status !== "admin" && Number(gridValue) > maxGrid
             ? "border-red-500"
             : "border-gray-200 dark:border-gray-700"
-        } rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          } rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
       />
       <div className="text-xs text-gray-500">Max: {maxGrid} grids</div>
     </div>

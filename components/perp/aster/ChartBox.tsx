@@ -11,7 +11,7 @@ import OrderBook from "./OrderBook";
 import AssetSelect from "./assetSelect";
 import PerpAggregator from "../PerpAggregator";
 import { formatCompactNumber, toFiniteNumber, formatPrice } from "@/utility/handy";
-import { PERP_ADVANCED_SYMBOL } from "@/constants/common/order";
+
 import type { AsterMarketStats } from "@/hooks/useAsterhooks/useAsterMarketStats";
 import { normalizeAsterSymbol, normalizeCoin } from "@/utility/perpUtils";
 
@@ -23,6 +23,7 @@ interface ChartBoxProps {
   connected: boolean;
   loading: boolean;
   error: string | null;
+  isAdvancedSymbol: boolean;
 }
 
 interface MetricItem {
@@ -101,6 +102,7 @@ const ChartBox = memo(function ChartBox({
   connected,
   loading,
   error,
+  isAdvancedSymbol,
 }: ChartBoxProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isPerpAggregator, setIsPerpAggregator] = useState(false);
@@ -171,7 +173,7 @@ const ChartBox = memo(function ChartBox({
   const changeValue = toFiniteNumber(stats.priceChangePercent);
   const hasSymbol = Boolean(selectedSymbol);
   const normalizeSymbol = normalizeCoin(selectedSymbol);
-  const showAggregatorToggle = PERP_ADVANCED_SYMBOL.includes(normalizeSymbol);
+  const showAggregatorToggle = isAdvancedSymbol;
 
   return (
     <>

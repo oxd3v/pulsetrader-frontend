@@ -1,5 +1,3 @@
-
-import { CollateralTokens } from "@/constants/common/tokens";
 //components
 import TokenCard from "@/components/Token/TokenCard";
 

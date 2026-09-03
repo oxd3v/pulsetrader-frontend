@@ -7,6 +7,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { useUserAuth } from "@/hooks/useAuth";
 import { getGladiatorStakeAmount } from "@/lib/blockchain/stake";
 import { getStatus } from "@/constants/common/user";
+import { store } from "@/store/useStore";
 import { toast } from "react-hot-toast";
 import { isValidInvitationCode } from "@/utility/handy";
 import { FiCheckCircle, FiLock } from "react-icons/fi";
@@ -29,6 +30,7 @@ export default function JoinBox({
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userStakeAmount, setUserStakeAmount] = useState("0");
+  const systemInfo: any = store((state: any) => state.systemInfo);
 
   useEffect(() => {
     let mounted = true;
@@ -39,7 +41,7 @@ export default function JoinBox({
           if (!mounted) return;
           setUserStakeAmount(amount.toString());
           // Check if amount qualifies for a status (e.g. > 1000)
-          const hasStatus = getStatus(Number(amount), "gladiator") != null;
+          const hasStatus = getStatus(Number(amount), "gladiator", systemInfo.userLevels) != null;
           setCriteriaApplied(
             hasStatus ? "GLADIATOR_STAKE_43114" : "INVITATION_CODE",
           );

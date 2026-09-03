@@ -22,7 +22,7 @@ import { chains } from "@/constants/common/chain";
 import toast from "react-hot-toast";
 
 import { OrderType } from "@/type/order";
-import { ActivityType, WalletType } from "@/type/common";
+import { ActivityType, UserType, WalletType } from "@/type/common";
 
 import { getWalletBalance } from "@/lib/blockchain/balance";
 import { fetchCodexWalletBalances } from "@/lib/oracle/codex";
@@ -41,7 +41,7 @@ import { PRECISION_DECIMALS } from "@/constants/common/utils";
 import Service from "@/service/user-service";
 
 interface PortfolioMainProps {
-  user: unknown;
+  user: UserType;
   chainId: number;
   setChainId: (chainId: number) => void;
   userOrders: OrderType[];
@@ -478,6 +478,7 @@ export default function PortfolioMain(props: PortfolioMainProps) {
                     selectedWallet={selectedWallet}
                     perpBalances={balanceData.perpBalances}
                     onRefresh={() => handleSelectedWallet(selectedWallet.address, selectedWallet._id)}
+                    user={user}
                   />
                 )}
                 {activeTab === "orders" && (

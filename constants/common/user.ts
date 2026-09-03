@@ -117,7 +117,7 @@ export const USER_LEVEL_IDS = {
   ['ADMIN']: 'admin'
 }
 
-export const getStatus = (amount: number, assetId: string) => {
+export const getStatus = (amount: number, assetId: string, userLevels: any) => {
   if (!USER_LEVEL_REQUIREMENTS_ASSET[assetId]) {
     return null;
   }

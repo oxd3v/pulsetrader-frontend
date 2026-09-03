@@ -7,7 +7,7 @@ import {
   FiUser,
   FiChevronRight,
 } from "react-icons/fi";
-import ChainSelection from "./chainSelection";
+
 import ThemeToggle from "./ThemeToggle";
 import { NAVBAR_ITEM_LIST } from "@/constants/common/frontend";
 
@@ -16,11 +16,9 @@ import { useStore } from "@/store/useStore";
 import { useShallow } from "zustand/shallow";
 
 export default function NavbarRight({ pathname }: { pathname: any }) {
-  const { checkUser, disconnect } = useUserAuth();
-  const { setNetwork, network, user, isConnected } = useStore(
+  const { disconnect, updateSystemInfo } = useUserAuth();
+  const { user, isConnected } = useStore(
     useShallow((state: any) => ({
-      network: state.network,
-      setNetwork: state.setNetwork,
       user: state.user,
       isConnected: state.isConnected,
     }))
@@ -33,6 +31,13 @@ export default function NavbarRight({ pathname }: { pathname: any }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const copyAddress = () => {
+    if (user?.account) {
+      navigator.clipboard.writeText(user.account);
+      // You could add a toast notification here
+    }
+  };
+
   // Close dropdown on click outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -44,20 +49,9 @@ export default function NavbarRight({ pathname }: { pathname: any }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const copyAddress = () => {
-    if (user?.account) {
-      navigator.clipboard.writeText(user.account);
-      // You could add a toast notification here
-    }
-  };
-
   useEffect(() => {
-    let checkIn = async () => {
-      await checkUser();
-    }
-    checkIn()
-
-  }, [])
+    updateSystemInfo();
+  }, [updateSystemInfo]);
 
   return (
     <div className="flex items-center gap-2 md:gap-4">
@@ -98,8 +92,8 @@ export default function NavbarRight({ pathname }: { pathname: any }) {
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${isMenuOpen
-              ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-              : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+            : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
             }`}
         >
           <FiMoreVertical className="w-5 h-5" />
@@ -113,7 +107,7 @@ export default function NavbarRight({ pathname }: { pathname: any }) {
                 Menu
               </p>
               {NAVBAR_ITEM_LIST.map((item) => {
-                const shouldShow = item.type === "public" || (item.type === "private" && isConnected);
+                const shouldShow = item.type === "public" || (item.type === "private" && isConnected) || (item.type === "onlyAdmin" && user?.status === "admin");
                 if (!shouldShow) return null;
 
                 return (

@@ -50,13 +50,14 @@ interface DynamicTokenData {
 export default function DefinedSpotMain({
   tokenAddress,
 }: DefinedSpotMainProps) {
-  const { user, isConnected, network, userOrders, userWallets } = useStore(
+  const { user, isConnected, network, userOrders, userWallets, systemInfo } = useStore(
     useShallow((state: any) => ({
       user: state.user,
       network: state.network,
       userOrders: state.userOrders,
       userWallets: state.userWallets,
-      isConnected: state.isConnected
+      isConnected: state.isConnected,
+      systemInfo: state.systemInfo,
     })),
   );
   // --- UI State ---
@@ -294,6 +295,7 @@ export default function DefinedSpotMain({
         userPrevOrders={userOrders}
         userWallets={userWallets}
         marketSnapshotRef={marketSnapshotRef}
+        config={{ minimumOrderSize: systemInfo?.minimumOrderSize || 15, maxGridNumber: systemInfo?.maxGridNumber || 3, userLevels: systemInfo?.userLevels }}
       />
     );
   }, [network, staticInfo, isConnected, user, userOrders, userWallets]);
